@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password, create_access_token
 from app.models.user import User
-from app.schemas.auth import UserRegisterRequest, UserLoginRequest
+from app.schemas.auth import UserRegisterRequest
 
 
 def register_user(db: Session, user_data: UserRegisterRequest):
@@ -28,8 +28,8 @@ def register_user(db: Session, user_data: UserRegisterRequest):
     return new_user
 
 
-def login_user(db: Session, login_data: UserLoginRequest):
-    user = db.query(User).filter(User.email == login_data.email).first()
+def login_user(db: Session, email: str, password: str):
+    user = db.query(User).filter(User.email == email).first()
 
     if not user:
         raise HTTPException(
@@ -37,7 +37,7 @@ def login_user(db: Session, login_data: UserLoginRequest):
             detail="Invalid email or password"
         )
 
-    if not verify_password(login_data.password, user.hashed_password):
+    if not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
