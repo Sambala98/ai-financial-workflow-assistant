@@ -47,3 +47,15 @@ def get_current_user(
         )
 
     return user
+def get_current_admin_user(
+    current_user: User = Depends(get_current_user)
+):
+    user_role = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
+
+    if user_role != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+
+    return current_user
