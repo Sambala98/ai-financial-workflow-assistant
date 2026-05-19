@@ -11,6 +11,18 @@ from app.models.document import Document
 from app.models.user import User
 from app.schemas.document import DocumentResponse, DocumentTextResponse
 from app.services.document_text_service import extract_text_from_document
+from app.models.document_chunk import DocumentChunk
+from app.models.document import DocumentStatus
+from app.schemas.document import (
+    DocumentResponse,
+    DocumentTextResponse,
+    DocumentChunkResponse,
+    DocumentChunkCreateResponse,
+)
+from app.services.document_text_service import (
+    extract_text_from_document,
+    split_text_into_chunks,
+)
 
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -145,3 +157,99 @@ def extract_document_text(
         "extracted_text": extracted_text[:5000],
         "character_count": len(extracted_text)
     }
+
+@router.post(
+    "/{document_id}/chunks",
+    response_model=DocumentChunkCreateResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def create_document_chunks(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+
+    existing_chunks = db.query(DocumentChunk).filter(
+        DocumentChunk.document_id == document.id,
+        DocumentChunk.user_id == current_user.id
+    ).all()
+
+    if existing_chunks:
+        for chunk in existing_chunks:
+            db.delete(chunk)
+
+        db.commit()
+
+    try:
+        extracted_text = extract_text_from_document(
+            file_path=document.file_path,
+            content_type=document.content_type
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Uploaded file not found on server"
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported file type"
+        )
+
+    chunks = split_text_into_chunks(extracted_text)
+
+    for index, chunk_text in enumerate(chunks):
+        chunk = DocumentChunk(
+            document_id=document.id,
+            user_id=current_user.id,
+            chunk_index=index,
+            chunk_text=chunk_text
+        )
+        db.add(chunk)
+
+    document.status = DocumentStatus.PROCESSED
+
+    db.commit()
+
+    return {
+        "document_id": document.id,
+        "total_chunks": len(chunks),
+        "message": "Document chunks created successfully"
+    }
+
+
+@router.get(
+    "/{document_id}/chunks",
+    response_model=list[DocumentChunkResponse],
+    status_code=status.HTTP_200_OK
+)
+def get_document_chunks(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+
+    return db.query(DocumentChunk).filter(
+        DocumentChunk.document_id == document.id,
+        DocumentChunk.user_id == current_user.id
+    ).order_by(DocumentChunk.chunk_index).all()

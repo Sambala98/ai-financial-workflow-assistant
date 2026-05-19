@@ -41,3 +41,23 @@ def extract_text_from_document(file_path: str, content_type: str | None) -> str:
         return extract_text_from_csv(file_path)
 
     raise ValueError("Unsupported file type")
+
+
+def split_text_into_chunks(text: str, chunk_size: int = 1000, overlap: int = 150) -> list[str]:
+    chunks = []
+
+    if not text:
+        return chunks
+
+    start = 0
+
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end].strip()
+
+        if chunk:
+            chunks.append(chunk)
+
+        start = end - overlap
+
+    return chunks

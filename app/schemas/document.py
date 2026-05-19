@@ -21,3 +21,20 @@ class DocumentTextResponse(BaseModel):
     original_filename: str
     extracted_text: str
     character_count: int
+
+class DocumentChunkResponse(BaseModel):
+    id: int
+    document_id: int
+    user_id: int
+    chunk_index: int
+    chunk_text: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentChunkCreateResponse(BaseModel):
+    document_id: int
+    total_chunks: int
+    message: str
