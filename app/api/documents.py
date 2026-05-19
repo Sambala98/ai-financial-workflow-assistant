@@ -9,7 +9,8 @@ from app.api.dependencies import get_current_user
 from app.db.session import get_db
 from app.models.document import Document
 from app.models.user import User
-from app.schemas.document import DocumentResponse
+from app.schemas.document import DocumentResponse, DocumentTextResponse
+from app.services.document_text_service import extract_text_from_document
 
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -100,3 +101,47 @@ def get_document(
         )
 
     return document
+
+@router.post(
+    "/{document_id}/extract-text",
+    response_model=DocumentTextResponse,
+    status_code=status.HTTP_200_OK
+)
+def extract_document_text(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+
+    try:
+        extracted_text = extract_text_from_document(
+            file_path=document.file_path,
+            content_type=document.content_type
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Uploaded file not found on server"
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported file type"
+        )
+
+    return {
+        "document_id": document.id,
+        "original_filename": document.original_filename,
+        "extracted_text": extracted_text[:5000],
+        "character_count": len(extracted_text)
+    }

@@ -15,3 +15,9 @@ class DocumentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class DocumentTextResponse(BaseModel):
+    document_id: int
+    original_filename: str
+    extracted_text: str
+    character_count: int
