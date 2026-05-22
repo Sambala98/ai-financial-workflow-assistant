@@ -1,8 +1,10 @@
 from sqlalchemy import DateTime, ForeignKey, Integer, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+from pgvector.sqlalchemy import Vector
 
 from app.db.base import Base
+
 
 
 class DocumentChunk(Base):
@@ -24,6 +26,7 @@ class DocumentChunk(Base):
 
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(384), nullable=True)
 
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),

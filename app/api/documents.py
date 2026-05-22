@@ -23,6 +23,7 @@ from app.services.document_text_service import (
     extract_text_from_document,
     split_text_into_chunks,
 )
+from app.tasks.document_tasks import process_document_task
 
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -253,3 +254,46 @@ def get_document_chunks(
         DocumentChunk.document_id == document.id,
         DocumentChunk.user_id == current_user.id
     ).order_by(DocumentChunk.chunk_index).all()
+
+@router.post("/{document_id}/process")
+def process_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id,
+    ).first()
+
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    task = process_document_task.delay(document_id)
+
+    return {
+        "message": "Document processing started",
+        "document_id": document_id,
+        "task_id": task.id,
+        "status": "PROCESSING",
+    }
+
+@router.get("/{document_id}/status")
+def get_document_status(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id,
+    ).first()
+
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return {
+        "document_id": document.id,
+        "original_filename": document.original_filename,
+        "status": document.status,
+    }
