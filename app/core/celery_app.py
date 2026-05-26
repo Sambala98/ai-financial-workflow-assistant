@@ -3,8 +3,8 @@ from app.core.config import settings
 
 celery_app = Celery(
     "ai_financial_worker",
-    broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL,
+    broker=settings.redis_url,
+    backend=settings.redis_url,
     include=["app.tasks.document_tasks"],
 )
 

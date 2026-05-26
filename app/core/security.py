@@ -20,15 +20,15 @@ def create_access_token(data: dict) -> str:
     to_encode = data.copy()
 
     expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=settings.access_token_expire_minutes
     )
 
     to_encode.update({"exp": expire})
 
     encoded_jwt = jwt.encode(
         to_encode,
-        settings.JWT_SECRET,
-        algorithm=settings.JWT_ALGORITHM
+        settings.jwt_secret,
+        algorithm=settings.jwt_algorithm 
     )
 
     return encoded_jwt
@@ -37,8 +37,8 @@ def create_access_token(data: dict) -> str:
 def decode_access_token(token: str) -> dict:
     payload = jwt.decode(
         token,
-        settings.JWT_SECRET,
-        algorithms=[settings.JWT_ALGORITHM]
+        settings.jwt_secret,
+        algorithms=[settings.jwt_algorithm]
     )
 
     return payload

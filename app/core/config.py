@@ -1,20 +1,25 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "AI Financial Workflow Assistant"
-    APP_ENV: str = "development"
+    app_name: str = "AI Financial Workflow Assistant"
+    app_env: str = "development"
 
-    DATABASE_URL: str
+    database_url: str
 
-    JWT_SECRET: str
-    JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    jwt_secret: str
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
 
-    REDIS_URL: str = "redis://localhost:6379/0"
+    redis_url: str = "redis://localhost:6379/0"
 
-    class Config:
-        env_file = ".env"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-5.2"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+    )
 
 
 settings = Settings()

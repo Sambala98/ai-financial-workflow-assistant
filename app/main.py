@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.api.rag import router as rag_router
 
 app = FastAPI(
-    title=settings.APP_NAME,
+    title=settings.app_name,
     version="1.0.0",
     description="Backend API for financial document upload, RAG question answering, and AI workflow automation."
 )
@@ -21,8 +21,8 @@ app.include_router(rag_router)
 @app.get("/")
 def root():
     return {
-        "message": f"{settings.APP_NAME} API is running",
-        "environment": settings.APP_ENV
+        "message": f"{settings.app_name} API is running",
+        "environment": settings.app_env
     }
 
 
