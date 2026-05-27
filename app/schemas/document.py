@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DocumentResponse(BaseModel):
@@ -13,9 +13,7 @@ class DocumentResponse(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
+    model_config = ConfigDict(from_attributes=True)
 class DocumentTextResponse(BaseModel):
     document_id: int
     original_filename: str
@@ -30,8 +28,7 @@ class DocumentChunkResponse(BaseModel):
     chunk_text: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentChunkCreateResponse(BaseModel):
