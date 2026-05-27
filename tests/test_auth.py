@@ -1,3 +1,4 @@
+import uuid
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -8,7 +9,7 @@ client = TestClient(app)
 
 def test_register_user():
     payload = {
-        "email": "test_auth_user@example.com",
+        "email": f"test_auth_user_{uuid.uuid4().hex}@example.com",
         "password": "TestPassword123"
     }
 
