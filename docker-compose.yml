@@ -9,7 +9,12 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ai_financial_pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_financial_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
@@ -17,5 +22,41 @@ services:
     ports:
       - "6379:6379"
 
+  api:
+    build: .
+    container_name: ai_financial_api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres123@postgres:5432/ai_financial_db
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  celery_worker:
+    build: .
+    container_name: ai_financial_celery_worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres123@postgres:5432/ai_financial_db
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+    command: python -m celery -A app.core.celery_app.celery_app worker --loglevel=info
+
 volumes:
-  ai_financial_pgdata:
+  postgres_data:
