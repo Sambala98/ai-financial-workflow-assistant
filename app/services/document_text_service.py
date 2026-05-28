@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from pypdf import PdfReader
+from app.services.text_cleaning_service import clean_extracted_text
 
 
 def extract_text_from_txt(file_path: str) -> str:
@@ -28,19 +29,16 @@ def extract_text_from_csv(file_path: str) -> str:
 
 
 def extract_text_from_document(file_path: str, content_type: str | None) -> str:
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("File not found")
-
     if content_type == "text/plain":
-        return extract_text_from_txt(file_path)
+        extracted_text = extract_text_from_txt(file_path)
+    elif content_type == "application/pdf":
+        extracted_text = extract_text_from_pdf(file_path)
+    elif content_type == "text/csv":
+        extracted_text = extract_text_from_csv(file_path)
+    else:
+        raise ValueError("Unsupported file type")
 
-    if content_type == "application/pdf":
-        return extract_text_from_pdf(file_path)
-
-    if content_type == "text/csv":
-        return extract_text_from_csv(file_path)
-
-    raise ValueError("Unsupported file type")
+    return clean_extracted_text(extracted_text)
 
 
 def split_text_into_chunks(text: str, chunk_size: int = 1000, overlap: int = 150) -> list[str]:
