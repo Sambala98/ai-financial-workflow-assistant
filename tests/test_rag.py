@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -167,6 +168,69 @@ def test_rag_search_returns_inserted_relevant_chunk():
         assert data["query"] == "What tools are used for background processing?"
         assert len(data["results"]) >= 1
         assert "Redis and Celery" in data["results"][0]["chunk_text"]
+
+    finally:
+        db.close()
+def test_rag_answer_returns_mocked_answer_with_sources():
+    token = create_test_token()
+    current_user = get_current_user_from_token(token)
+    user_id = current_user["id"]
+
+    db = SessionLocal()
+
+    try:
+        document = Document(
+            user_id=user_id,
+            original_filename="rag-answer-test.txt",
+            stored_filename=f"{uuid.uuid4().hex}.txt",
+            file_path="test-files/rag-answer-test.txt",
+            content_type="text/plain",
+            file_size=150,
+            status=DocumentStatus.PROCESSED,
+        )
+
+        db.add(document)
+        db.commit()
+        db.refresh(document)
+
+        chunk = DocumentChunk(
+            document_id=document.id,
+            user_id=user_id,
+            chunk_index=0,
+            chunk_text="Redis and Celery are used for background document processing.",
+            embedding=[0.1] * 384,
+        )
+
+        db.add(chunk)
+        db.commit()
+
+        with patch(
+            "app.api.rag.generate_llm_answer",
+            return_value="Redis and Celery are used for background document processing.",
+        ):
+            response = client.post(
+                "/rag/answer",
+                json={
+                    "question": "What tools are used for background processing?",
+                    "top_k": 3,
+                },
+                headers={
+                    "Authorization": f"Bearer {token}",
+                },
+            )
+
+        assert response.status_code == 200
+
+        data = response.json()
+
+        assert data["question"] == "What tools are used for background processing?"
+        assert data["answer"] == "Redis and Celery are used for background document processing."
+        assert len(data["sources"]) >= 1
+
+        assert any(
+            "Redis and Celery" in source["chunk_text"]
+            for source in data["sources"]
+        )
 
     finally:
         db.close()
