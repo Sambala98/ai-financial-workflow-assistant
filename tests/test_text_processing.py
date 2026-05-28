@@ -2,12 +2,13 @@ from app.services.text_cleaning_service import clean_extracted_text
 from app.services.chunking_service import chunk_text
 
 
-text = "A l p h a  B e t a\n\n\nD a t a     E n g i n e e r"
+def test_clean_extracted_text_fixes_spaced_letters():
+    text = "A l p h a  B e t a\n\n\nD a t a     E n g i n e e r"
 
-cleaned = clean_extracted_text(text)
+    cleaned = clean_extracted_text(text)
 
-assert "Alpha Beta" in cleaned
-assert "Data Engineer" in cleaned
+    assert "Alpha Beta" in cleaned
+    assert "Data Engineer" in cleaned
 
 
 def test_clean_extracted_text_normalizes_whitespace():
