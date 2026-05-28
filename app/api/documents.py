@@ -19,10 +19,8 @@ from app.schemas.document import (
     DocumentChunkResponse,
     DocumentChunkCreateResponse,
 )
-from app.services.document_text_service import (
-    extract_text_from_document,
-    split_text_into_chunks,
-)
+from app.services.document_text_service import extract_text_from_document
+from app.services.chunking_service import chunk_text
 from app.tasks.document_tasks import process_document_task
 
 
@@ -207,7 +205,7 @@ def create_document_chunks(
             detail="Unsupported file type"
         )
 
-    chunks = split_text_into_chunks(extracted_text)
+    chunks = chunk_text(extracted_text)
 
     for index, chunk_text in enumerate(chunks):
         chunk = DocumentChunk(
