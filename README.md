@@ -1,5 +1,7 @@
 \# AI Financial Workflow Assistant
 
+![CI](https://github.com/Sambala98/ai-financial-workflow-assistant/actions/workflows/ci.yml/badge.svg)
+
 
 
 A production-style FastAPI backend for financial document upload, asynchronous document processing, semantic search, and OpenAI-backed RAG question answering.
