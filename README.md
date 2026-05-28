@@ -52,38 +52,20 @@ This project demonstrates backend engineering, document processing, vector searc
 
 
 
-\## Tech Stack
-
-
-
 | Layer | Technology |
-
 |---|---|
-
 | Backend API | FastAPI |
-
 | Language | Python |
-
 | Database | PostgreSQL |
-
 | Vector Search | pgvector |
-
 | ORM | SQLAlchemy |
-
 | Migrations | Alembic |
-
 | Auth | JWT |
-
 | Background Jobs | Celery |
-
 | Broker/Backend | Redis |
-
 | Embeddings | sentence-transformers |
-
 | LLM | OpenAI API |
-
 | Containers | Docker, Docker Compose |
-
 | Testing | pytest, FastAPI TestClient |
 
 
@@ -92,63 +74,34 @@ This project demonstrates backend engineering, document processing, vector searc
 
 
 
-\## Architecture
-
-
+## Architecture
 
 ```text
-
 User / Swagger / Frontend
-
-&#x20;       |
-
-&#x20;       v
-
+        |
+        v
 FastAPI API
-
-&#x20;       |
-
-&#x20;       +--> JWT Authentication
-
-&#x20;       |
-
-&#x20;       +--> Document Upload
-
-&#x20;       |
-
-&#x20;       +--> PostgreSQL Metadata
-
-&#x20;       |
-
-&#x20;       +--> Redis Queue
-
-&#x20;                 |
-
-&#x20;                 v
-
-&#x20;           Celery Worker
-
-&#x20;                 |
-
-&#x20;                 v
-
-&#x20;       Text Extraction + Chunking + Embeddings
-
-&#x20;                 |
-
-&#x20;                 v
-
-&#x20;       PostgreSQL + pgvector
-
-&#x20;                 |
-
-&#x20;                 v
-
-&#x20;       RAG Search + OpenAI Answer Generation
-
-&#x20;                 |
-
-&#x20;                 v
-
-&#x20;       Answer + Source Chunks
-
+        |
+        +--> JWT Authentication
+        |
+        +--> Document Upload
+        |
+        +--> PostgreSQL Metadata
+        |
+        +--> Redis Queue
+                  |
+                  v
+            Celery Worker
+                  |
+                  v
+        Text Extraction + Chunking + Embeddings
+                  |
+                  v
+        PostgreSQL + pgvector
+                  |
+                  v
+        RAG Search + OpenAI Answer Generation
+                  |
+                  v
+        Answer + Source Chunks
+```
