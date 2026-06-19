@@ -1,6 +1,3 @@
-Paste this directly into `README.md` in VS Code.
-
-````markdown
 # AI Financial Workflow Assistant
 
 ![CI](https://github.com/Sambala98/ai-financial-workflow-assistant/actions/workflows/ci.yml/badge.svg)
